@@ -1,7 +1,9 @@
 module Equation where
 --module Equation (parse, solve) where
 
-data Equation = Leaf Double | Tree Operator Equation Equation
+data Equation = Empty | Leaf Double | Tree Operator Equation Equation
+data Operator = Plus | Minus | Multiply | Divide
+type Parts = [String]
 
 -- 3 + 5 * 2
 sampleEq :: Equation
@@ -26,15 +28,20 @@ sampleEq' =
 parse :: String -> Equation
 parse = parseParts . parseString
 
-parseString :: String -> [String]
+parseString :: String -> Parts
 parseString = filter (not . null) . foldr parse' []
     where parse' c [] = [[c]]
           parse' c xs@(x:xs')
               | c `elem` "()" = []:xs
               | otherwise     = (c:x):xs'
 
-parseParts :: [String] -> Equation
+parseParts :: Parts -> Equation
 parseParts = undefined
+
+isValid :: Equation -> Bool
+isValid Empty          = False
+isValid (Leaf _)       = True
+isValid (Tree _ e1 e2) = isValid e1 && isValid e2
 
 solve :: Equation -> Double
 solve (Leaf n)       = n
