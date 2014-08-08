@@ -32,10 +32,12 @@ parse = parseParts . parseString
 
 parseString :: String -> Parts
 parseString = filter (not . null) . foldr parse' []
-    where parse' c [] = [[c]]
-          parse' c xs@(x:xs')
-              | c `elem` "()" = []:xs
-              | otherwise     = (c:x):xs'
+    where
+        parse' c xs
+            | c `elem` "()" = []:xs
+            | otherwise     = if (not . null) xs
+                                then (c:head xs):tail xs
+                                else [[c]]
 
 parseParts :: Parts -> Equation
 parseParts = undefined
