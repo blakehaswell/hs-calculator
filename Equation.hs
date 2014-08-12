@@ -1,13 +1,19 @@
 module Equation where
 --module Equation (parse, solve) where
 
-import Control.Applicative
+import Control.Applicative hiding (many)
 import Control.Monad
 import Data.Char (digitToInt, isDigit)
 import Debug.Trace
 
-data Equation = Empty | Leaf Double | Tree Operator Equation Equation deriving (Show)
-data Operator = Plus | Minus | Multiply | Divide deriving (Show)
+import Text.Parsec.Char (anyChar, char, digit)
+import Text.Parsec.Combinator (many1, option)
+import Text.Parsec.Expr (Assoc (..), Operator (..))
+import Text.Parsec.Prim (Parsec, many)
+import Text.Parsec.String (Parser)
+
+data Equation = Empty | Leaf Double | Tree Op Equation Equation deriving (Show)
+data Op = Plus | Minus | Multiply | Divide deriving (Show)
 type Parts = [String]
 
 -- 3 + 5 * 2
@@ -81,6 +87,25 @@ joinEqsWithPrecendence (Tree Divide Empty e1) (Tree o e2 e3) = Just (Tree o (Tre
 joinEqsWithPrecendence (Tree o e1 e2) (Tree Divide Empty e3) = Just (Tree o (Tree Divide e2 e3) e1)
 joinEqsWithPrecendence (Tree o e1 e2) (Tree Divide e3 Empty) = Just (Tree o (Tree Divide e2 e3) e1)
 joinEqsWithPrecendence e1 e2 = joinEqs e1 e2
+
+--parsecParse :: Parser Equation
+--parsecParse = do
+--    d <- many digit
+--    return $ Leaf (read d)
+
+parseDouble :: Parser Equation
+--parseDouble = do
+--    i <- many1 digit
+--    f <- option "" $ (:) <$> (char '.') <*> many1 digit
+--    --f <- many digit
+--    return $ Leaf (read (i ++ f))
+parseDouble =
+    Leaf <$> (read <$> ((++) <$> integer <*> fraction))
+        where integer = many1 digit
+              fraction = option "" $ (:) <$> (char '.') <*> many1 digit
+
+--multiply = char '*'
+--multiply = Infix ((char '*') >> return (Tree Multiply)) AssocLeft
 
 solve :: Equation -> Maybe Double
 solve Empty          = Nothing
