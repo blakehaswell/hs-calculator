@@ -8,7 +8,7 @@ import Text.Parsec.Expr (Assoc (..), Operator (..), buildExpressionParser)
 import qualified Text.Parsec.Prim as P ((<|>), parse)
 import Text.Parsec.String (Parser)
 
-data Equation = Empty | Leaf Double | Tree Op Equation Equation deriving (Show)
+data Equation = Leaf Double | Tree Op Equation Equation deriving (Show)
 data Op = Plus | Minus | Multiply | Divide deriving (Show)
 
 -- 3 + 5 * 2
@@ -49,10 +49,9 @@ parseDouble = fmap (Leaf . read) $ (++) <$> integer <*> fraction
     where integer  = many1 digit
           fraction = option "" $ (:) <$> char '.' <*> many1 digit
 
-solve :: Equation -> Maybe Double
-solve Empty          = Nothing
-solve (Leaf n)       = Just n
-solve (Tree o e1 e2) = f <$> solve e1 <*> solve e2
+solve :: Equation -> Double
+solve (Leaf n)       = n
+solve (Tree o e1 e2) = f (solve e1) (solve e2)
     where f = case o of Plus     -> (+)
                         Minus    -> (-)
                         Multiply -> (*)
